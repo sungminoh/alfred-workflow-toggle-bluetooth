@@ -16,3 +16,6 @@ brew install jq blueutil
 
 `bl` + `<query (optional)>` 
 
+
+
+#### [Download](https://github.com/sungminoh/alfred-workflow-toggle-bluetooth/releases/download/v1.0.0/Toggle.Bluetooth.Device.alfredworkflow)
