@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.sungmin.toggle-bluetooth</string>
+	<key>connections</key>
+	<dict>
+		<key>0BD7851E-68D2-443F-B942-E96ADDB851DF</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>6E4FF309-2072-4B2D-B572-D761E1A4A4E4</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Sungmin Oh</string>
+	<key>description</key>
+	<string></string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Toggle Bluetooth Device</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<false/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>0</integer>
+				<key>keyword</key>
+				<string>bl</string>
+				<key>queuedelaycustom</key>
+				<integer>1</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<false/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>filtering bluetooth devices</string>
+				<key>script</key>
+				<string>#!/bin/bash
+
+shopt -s nocasematch
+
+query="{query}"
+[ $query = "{query}" ] &amp;&amp; query="$@"
+
+IFS=' '
+connected_devices=$(system_profiler SPBluetoothDataType -json | jq -r '.SPBluetoothDataType[0].device_connected[] | with_entries(.value |= .device_address)' | jq --slurp)
+disconnected_devices=$(system_profiler SPBluetoothDataType -json | jq -r '.SPBluetoothDataType[0].device_not_connected[] | with_entries(.value |= .device_address)' | jq --slurp)
+devices=$(jq -s add &lt;&lt;&lt;"$connected_devices $disconnected_devices")
+connected_device_cnt=$(jq length &lt;&lt;&lt; "$connected_devices")
+
+
+echo '&lt;?xml version="1.0"?&gt;'
+echo '&lt;items&gt;'
+
+function print_items {
+  if [[ $1 == 0 ]]; then
+    target=$connected_devices
+    action="Disconnect"
+    icon="icon.png"
+  elif [[ $1 == 1 ]]; then
+    target=$disconnected_devices
+    action="Connect"
+    icon="disconnected.png"
+  fi
+
+  jq -c '.[]' &lt;&lt;&lt; "$target" | while IPS= read -r device; do
+    device_name=$(jq -r 'to_entries[].key' &lt;&lt;&lt; "$device")
+    mac_address=$(jq -r 'to_entries[].value' &lt;&lt;&lt; "$device")
+
+    if [[ -n $query &amp;&amp; ! $device_name =~ $query ]]; then
+      continue
+    fi
+
+    echo "
+      &lt;item uid=\"$device_name\" arg=\"${action}_${mac_address}\"&gt;
+        &lt;title&gt;$device_name&lt;/title&gt;
+        &lt;subtitle&gt;$action $device_name&lt;/subtitle&gt;
+        &lt;icon&gt;$icon&lt;/icon&gt;
+      &lt;/item&gt;
+    "
+  done
+}
+
+print_items 0
+print_items 1
+
+echo '&lt;/items&gt;'
+</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Start typing a device name...</string>
+				<key>title</key>
+				<string>Toggle a bluetooth device</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>0BD7851E-68D2-443F-B942-E96ADDB851DF</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>query={query}
+
+IFS=_ read -r action address &lt;&lt;&lt; "$query"
+
+if [ "$action" == "Connect" ]; then
+    blueutil --connect "$address"
+elif [ "$action" == "Disconnect" ]; then
+    blueutil --disconnect "$address"
+else
+    echo "Invalid action. Please use 'connect' or 'disconnect'."
+fi</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>6E4FF309-2072-4B2D-B572-D761E1A4A4E4</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string></string>
+	<key>uidata</key>
+	<dict>
+		<key>0BD7851E-68D2-443F-B942-E96ADDB851DF</key>
+		<dict>
+			<key>xpos</key>
+			<real>60</real>
+			<key>ypos</key>
+			<real>60</real>
+		</dict>
+		<key>6E4FF309-2072-4B2D-B572-D761E1A4A4E4</key>
+		<dict>
+			<key>xpos</key>
+			<real>290</real>
+			<key>ypos</key>
+			<real>65</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array/>
+	<key>webaddress</key>
+	<string>https://github.com/sungminoh/alfred-workflow-toggle-bluetooth</string>
+</dict>
+</plist>
